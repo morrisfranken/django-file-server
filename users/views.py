@@ -1,4 +1,6 @@
+# -*- coding: future_fstrings -*-
 import ujson as json
+import traceback
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import auth
@@ -18,9 +20,13 @@ def create(request):
     
     if request.method == 'POST':
         if request.POST.get("password") == request.POST.get("password2"):
-            User = get_user_model()
-            user = User.objects.create_user(email=request.POST.get("email"), password=request.POST.get("password"))
-            return HttpResponse("Done! {}".format(user))
+            try:
+                User = get_user_model()
+                user = User.objects.create_user(email=request.POST.get("email"), password=request.POST.get("password"))
+                return HttpResponse("Done! {}".format(user))
+            except Exception as e:
+                print(traceback.format_exc())
+                raise e
     form = forms.UserCreationForm()
     return render(request, 'create.html', {'form': form})
 

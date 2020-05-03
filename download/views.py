@@ -1,3 +1,4 @@
+# -*- coding: future_fstrings -*-
 # from django.contrib.auth.decorators import login_required
 # This module is meant for checking user-permissions to download certain files.
 # this only works in combination with apache & XSendFile module (see current apache virtualhost file)
