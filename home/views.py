@@ -13,7 +13,7 @@ from .forms import UploadForm
 from . import models
 
 class UploadsTable(tables.Table):
-    delete = tables.Column("Delete", accessor='id', orderable=False)
+    delete = tables.Column("Delete", accessor='id')
 
     def render_delete(self, record):
         return mark_safe(f"<a onclick=\"delete_file('{record.id}', '{record.file.name}')\" href=\"javascript:void(0);\">&#x274C;</a>")
@@ -23,8 +23,11 @@ class UploadsTable(tables.Table):
         return mark_safe(f"""<input type="checkbox" {checked} onclick="set_private(this, '{record.id}');">""")
 
     class Meta:
+        orderable = False
         model = models.Uploads
-        attrs = {'class': 'paleblue'}
+        # attrs = {'class': 'paleblue'}
+        # attrs = {'class': 'table table-sm'}
+        # template_name = "django_tables2/bootstrap.html"
         exclude = ("id", "user", )
         sequence = ('created_at', 'file', 'is_private', 'delete')
 
