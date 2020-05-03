@@ -1,0 +1,147 @@
+{% load static %}
+{% load render_table from django_tables2 %}
+<!doctype html>
+<html>
+    <head>
+        <title>3DU Drive</title>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+        <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    </head>
+    <style>
+        .dropzone {
+            padding: 50px;
+            border: 2px dashed #060;
+        }
+
+        .dropzone.is-dragover {
+          background-color: #e6ecef;
+        }
+
+        .dragover {
+            bg-color: red;
+        }
+    </style>
+
+    <body>
+    <div class="" draggable='true' style='padding: 20px'>
+        <div id='dropzone' class='dropzone'>
+            Drop Your File Here
+            <form action="javascript:upload()" id="fileForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" style="display:none">Upload</button>
+            </form><br>
+            <progress id="progressBar" max="100" value="0">uploading</progress>
+        </div>
+    </div>
+    <br>
+    	{% render_table table %}
+    </body>
+
+    <script>
+        function upload() {
+            var file = document.getElementById("{{ form.file.auto_id }}").files[0];
+            var formData = new FormData($('form')[0]);
+
+            $.ajax({
+                type: "POST",
+                enctype: 'multipart/form-data',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                dataType : "text",
+                beforeSend: function (request, xhr) {
+                    $('#progressBar').text('0%');
+                    $('#progressBar').val(0);
+                },
+                timeout: 6000000,
+                success: function (data) {
+                    $('#progressBar').text('100%');
+                    $('#progressBar').val(100);
+                    console.log("finished uploading! " + data)
+                    location.reload();
+                },
+
+                xhr: function(){
+                     var xhr = $.ajaxSettings.xhr() ;
+                     xhr.upload.onprogress = function(data){
+                        var perc = Math.round((data.loaded / data.total) * 100);
+                        console.log("" + perc + "%")
+                        $('#progressBar').val(perc);
+                        $('#progressBar').text(perc + '%');
+                     };
+                     return xhr ;
+                },
+                error :  function errorHandler(xhr, status, error) {
+                    alert("Oops " + error);
+                },
+            });
+        }
+
+
+        var dropzone = $('#dropzone')
+        let fileInput = document.getElementById("{{ form.file.auto_id }}");
+
+        dropzone.on('drag dragstart dragend dragover dragenter dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+          })
+        dropzone.on('dragover dragenter', function() {
+            $(this).addClass('is-dragover');
+          })
+        dropzone.on('dragleave dragend drop', function() {
+            $(this).removeClass('is-dragover');
+          })
+        dropzone.on('drop',function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              fileInput.files = e.originalEvent.dataTransfer.files;
+              upload();
+          });
+
+
+        function delete_file(file_id, file_name) {
+            if (confirm(`Confirm to delete file ${file_name}`)) {
+                $.ajax({
+                    type: "POST",
+                    url: "/delete/" + file_id,
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(msg){
+                        location.reload();
+                    },
+                    error :  function errorHandler(xhr, status, error) {
+                        alert("Oops " + error);
+                    },
+                });
+            }
+        }
+
+        function copyToClipboard(str) {
+          const el = document.createElement('textarea');
+          el.value = str;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+        };
+
+        function set_private(checkbox, file_id) {
+            $.ajax({
+                type: "POST",
+                url: "/set_private/" + file_id,
+                data: {
+                    'private' : checkbox.checked,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                error :  function errorHandler(xhr, status, error) {
+                    checkbox.checked = !checkbox.checked;
+                    alert("Oops " + error);
+                },
+            });
+        }
+    </script>
+</html>
