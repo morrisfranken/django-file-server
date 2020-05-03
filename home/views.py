@@ -67,8 +67,8 @@ def set_private(request, file_id):
     if request.method == 'POST':
         upload = get_object_or_404(models.Uploads, id=file_id)
         value = request.POST['private'] == "true"
-        print(f"request.POST['private'] = {request.POST['private']}")
-        print(f"value = {value}")
+        # print(f"request.POST['private'] = {request.POST['private']}")
+        # print(f"value = {value}")
         if upload.user == request.user:
             upload.is_private = value
             upload.save(update_fields=['is_private'])

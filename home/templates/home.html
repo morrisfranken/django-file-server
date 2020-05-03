@@ -21,18 +21,34 @@
         .dragover {
             bg-color: red;
         }
+
+        .container {
+            display: -webkit-flexbox;
+            display: -ms-flexbox;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-flex-align: center;
+            -ms-flex-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 
     <body>
     <div class="" draggable='true' style='padding: 20px'>
         <div id='dropzone' class='dropzone'>
-            Drop Your File Here
-            <form action="javascript:upload()" id="fileForm" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" style="display:none">Upload</button>
-            </form><br>
-            <progress id="progressBar" max="100" value="0">uploading</progress>
+            <div class="container">
+                <div>
+                Drop Your File Here
+                <form action="javascript:upload()" id="fileForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" style="display:none">Upload</button>
+                </form><br>
+                <progress id="progressBar" max="100" value="0">uploading</progress>
+                    </div>
+            </div>
         </div>
     </div>
     <br>
