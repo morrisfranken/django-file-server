@@ -1,6 +1,6 @@
 # -*- coding: future_fstrings -*-
 import json
-from os.path import join
+from os.path import join, basename
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -25,6 +25,10 @@ class UploadsTable(tables.Table):
     def render_is_private(self, record):
         checked = "checked=1" if record.is_private else ""
         return mark_safe(f"""<input type="checkbox" {checked} onclick="set_private(this, '{record.id}');">""")
+
+    def render_file(self, record):
+        share_link = f"<img src=\"/static/img/link.svg\" class=\"copyicon\" onclick=\"copyToClipboard('{record.file.url}')\"\>"
+        return mark_safe(basename(record.file.name) + share_link)
 
     def render_size(self, record):
         num = record.size
@@ -68,6 +72,12 @@ def home(request):
         form = UploadForm()
         upload_table = UploadsTable(models.Uploads.objects.filter(user=request.user).order_by('-created_at'))
         return render(request, 'home.html', {'form': form, 'table' : upload_table})
+
+@login_required
+def uploads(request):
+    upload_table = UploadsTable(models.Uploads.objects.filter(user=request.user).order_by('-created_at'))
+    return render(request, 'uploads.html', {'table' : upload_table})
+
 
 @login_required
 def delete_file(request, file_id):
