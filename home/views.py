@@ -19,6 +19,10 @@ from . import models
 class UploadsTable(tables.Table):
     delete = tables.Column("Delete", accessor='id')
 
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = request
+
     def render_delete(self, record):
         return mark_safe(f"<a onclick=\"delete_file('{record.id}', '{record.file.name}')\" href=\"javascript:void(0);\">&#x274C;</a>")
 
@@ -27,8 +31,9 @@ class UploadsTable(tables.Table):
         return mark_safe(f"""<input type="checkbox" {checked} onclick="set_private(this, '{record.id}');">""")
 
     def render_file(self, record):
-        share_link = f"<img src=\"/static/img/link.svg\" class=\"copyicon\" onclick=\"copyToClipboard('{record.file.url}')\"\>"
-        return mark_safe(basename(record.file.name) + share_link)
+        file_link = f"<a href='{record.file.url}' target=\"_blank\">{basename(record.file.name)}</a>"
+        share_link = f"<img src=\"/static/img/link.svg\" class=\"copyicon\" onclick=\"copyToClipboard('{self.request.build_absolute_uri(record.file.url)}')\"\>"
+        return mark_safe(file_link + share_link)
 
     def render_size(self, record):
         num = record.size
@@ -70,12 +75,12 @@ def home(request):
         return HttpResponse(json.dumps(url_list), content_type='application/json')
     else:
         form = UploadForm()
-        upload_table = UploadsTable(models.Uploads.objects.filter(user=request.user).order_by('-created_at'))
+        upload_table = UploadsTable(request, models.Uploads.objects.filter(user=request.user).order_by('-created_at'))
         return render(request, 'home.html', {'form': form, 'table' : upload_table})
 
 @login_required
 def uploads(request):
-    upload_table = UploadsTable(models.Uploads.objects.filter(user=request.user).order_by('-created_at'))
+    upload_table = UploadsTable(request, models.Uploads.objects.filter(user=request.user).order_by('-created_at'))
     return render(request, 'uploads.html', {'table' : upload_table})
 
 
