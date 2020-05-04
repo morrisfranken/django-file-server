@@ -1,16 +1,20 @@
 # -*- coding: future_fstrings -*-
 import json
+from os.path import join
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.utils.datastructures import MultiValueDict
 from django.conf import settings
+from django.db.models import F
 import django_tables2 as tables
+from sendfile import sendfile
 from django.utils.html import mark_safe
 
 from .forms import UploadForm
 from . import models
+
 
 class UploadsTable(tables.Table):
     delete = tables.Column("Delete", accessor='id')
@@ -22,6 +26,14 @@ class UploadsTable(tables.Table):
         checked = "checked=1" if record.is_private else ""
         return mark_safe(f"""<input type="checkbox" {checked} onclick="set_private(this, '{record.id}');">""")
 
+    def render_size(self, record):
+        num = record.size
+        for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+            if abs(num) < 1024.0:
+                return "%3.1f%s%s" % (num, unit, 'B')
+            num /= 1024.0
+        return "%.1f%s%s" % (num, 'Y', 'B')
+
     class Meta:
         orderable = False
         model = models.Uploads
@@ -29,22 +41,23 @@ class UploadsTable(tables.Table):
         # attrs = {'class': 'table table-sm'}
         # template_name = "django_tables2/bootstrap.html"
         exclude = ("id", "user", )
-        sequence = ('created_at', 'file', 'is_private', 'delete')
+        sequence = ('created_at', 'file', 'size', 'downloads', 'is_private', 'delete')
 
 @login_required
 def home(request):
     if request.method == 'POST':
         files = request.FILES.getlist('file')
-        print(f"len = {len(files)}")
-        url_list = []
         if not files:
             return HttpResponse(status=400)
+
+        url_list = []
         for file in files:
             print(file)
             form = UploadForm(request.POST, MultiValueDict({'file' : [file,]}))
             if form.is_valid():
                 candidate = form.save(commit=False)
                 candidate.user = request.user
+                candidate.size = candidate.file.size
                 candidate.save()
                 form.save(request.user)
                 url_list.append(request.build_absolute_uri(candidate.file.url))
@@ -78,3 +91,19 @@ def set_private(request, file_id):
             upload.save(update_fields=['is_private'])
             return HttpResponse(status=200)
         raise PermissionDenied()
+
+
+@login_required
+def download_private(request, localpath):
+    return sendfile(request, localpath)
+
+
+def download(request, download_path):
+    localpath = join(settings.MEDIA_ROOT, download_path)
+    upload = get_object_or_404(models.Uploads, file=download_path)
+    models.Uploads.objects.filter(id=upload.id).update(downloads=F('downloads') + 1)
+    print(f"download [{request.user.email if request.user.is_authenticated else 'anonymouse'} : {'private' if upload.is_private else 'public'}] {download_path}")
+    if upload.is_private:
+        return download_private(request, localpath)
+    else:
+        return sendfile(request, localpath)

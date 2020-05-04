@@ -14,6 +14,8 @@ class Uploads(models.Model):
     file            = models.FileField(upload_to=user_directory_path)
     is_private      = models.BooleanField(default=False)
     created_at      = models.DateTimeField(auto_now_add=True)
+    downloads       = models.IntegerField(default=0)
+    size            = models.BigIntegerField(default=0)
     user            = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 @receiver(pre_delete, sender=Uploads)
