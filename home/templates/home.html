@@ -2,22 +2,19 @@
 {% load static %}
 <!doctype html>
 <html>
-    <head>
-        <title>3DU Drive</title>
-<!--        <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>-->
-<!--        <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />-->
-<!--        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">-->
-<!--        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />-->
+<head>
+    <title>3DU Drive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.11.8/semantic.min.css"/>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.11.8/semantic.min.js"></script>
-    </head>
-    <style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.11.8/semantic.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.11.8/semantic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+</head>
+<style>
         .dropzone {
             padding: 50px;
             border: 2px dashed #060;
+            height: 220px;
         }
 
         .dropzone.is-dragover {
@@ -41,39 +38,51 @@
         }
 
         .copyicon {
-            height : 1em;
             float: right;
-            margin-left: 4px;
             cursor: pointer;
         }
-    </style>
 
-    <body>
-    <div class="" draggable='true' style='padding: 20px'>
-        <div id='dropzone' class='dropzone'>
-            <div class="container">
-                <div>
-                Drop Your File Here
+        .ui.mini.button {
+            padding: 8px;
+            margin: 0px;
+        }
+
+        label[for*="id_file"], label[htmlfor*="id_file"], .hidden {
+            display: none;
+        }
+</style>
+
+<body>
+<div class="" draggable='true' style='padding: 20px'>
+    <div id='dropzone' class='dropzone'>
+        <div class="container">
+            <div>
+                <h1>Drop Your Files Here</h1>
                 <form action="javascript:upload()" id="fileForm" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    {{ form.as_p }}
+                    {{ form.as_p }}<br>
                     <button type="submit" style="display:none">Upload</button>
-                </form><br>
-                <progress id="progressBar" max="100" value="0">uploading</progress>
+                </form>
+                <br>
+                <div class="ui progress" data-value="0" data-total="100" id="progress_bar">
+                    <div class="bar">
+                        <div class="progress"></div>
                     </div>
+                </div>
             </div>
         </div>
     </div>
-    <br>
-    <div class="container" id="table_div">
-    	{% render_table table %}
-    </div>
-    </body>
+</div>
+<br>
+<div class="container" id="table_div">
+    {% render_table table %}
+</div>
+</body>
 
-    <script>
+<script>
         function upload() {
-            var file = document.getElementById("{{ form.file.auto_id }}").files[0];
             var formData = new FormData($('form')[0]);
+            var prev_percentage = -1;
 
             $.ajax({
                 type: "POST",
@@ -84,24 +93,26 @@
                 processData: false,
                 dataType : "text",
                 beforeSend: function (request, xhr) {
-                    $('#progressBar').text('0%');
-                    $('#progressBar').val(0);
+                    $('#progress_bar').progress('reset');
+                    $("#progress_bar").show();
                 },
                 timeout: 6000000,
                 success: function (data) {
-                    $('#progressBar').text('100%');
-                    $('#progressBar').val(100);
+                    $('#progress_bar').progress('complete')
                     console.log("finished uploading! " + data)
                     $('#table_div').load("uploads/")
+                    $('#progress_bar').delay(2000).fadeOut('slow');
                 },
 
                 xhr: function(){
                      var xhr = $.ajaxSettings.xhr() ;
                      xhr.upload.onprogress = function(data){
                         var perc = Math.round((data.loaded / data.total) * 100);
-                        console.log("" + perc + "%")
-                        $('#progressBar').val(perc);
-                        $('#progressBar').text(perc + '%');
+                        if (perc != prev_percentage) {
+                            prev_percentage = perc;
+                            console.log("" + perc + "%")
+                            $('#progress_bar').progress({percent: perc})
+                        }
                      };
                      return xhr ;
                 },
@@ -110,7 +121,7 @@
                 },
             });
         }
-
+        $("#progress_bar").hide();
 
         var dropzone = $('#dropzone')
         let fileInput = document.getElementById("{{ form.file.auto_id }}");
@@ -142,7 +153,7 @@
                         csrfmiddlewaretoken: '{{ csrf_token }}'
                     },
                     success: function(msg){
-                        $('#table_div').load("uploads/")
+                       $('#table_div').load("uploads/")
                     },
                     error :  function errorHandler(xhr, status, error) {
                         alert("Oops " + error);
@@ -158,6 +169,7 @@
           el.select();
           document.execCommand('copy');
           document.body.removeChild(el);
+          toastr.success('Link copied to ' + str);
         };
 
         function set_private(checkbox, file_id) {
@@ -174,5 +186,5 @@
                 },
             });
         }
-    </script>
+</script>
 </html>

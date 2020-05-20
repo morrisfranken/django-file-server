@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import getpass
+from file_server import secrets
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,12 +22,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '*&v4!-fd$3r4o&$3)!$ftgq$#99$xlk*lejo%bfcb30@-31c9l'
+SECRET_KEY = secrets.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if getpass.getuser() == 'www-data':  # or socket.gethostname() not in ["morris-laptop", "finde-A15-R2"] :
     DEBUG = False
-    ALLOWED_HOSTS = ['localhost', 'drive.3duniversum.com']
+    ALLOWED_HOSTS = ['localhost', secrets.URL]
 else:
     DEBUG = True
     ALLOWED_HOSTS = ['*']

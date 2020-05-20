@@ -2,6 +2,7 @@ media
 /static
 .idea
 db.sqlite3
+file_server/secrets.py
 
 __pycache__/
 *.py[cod]

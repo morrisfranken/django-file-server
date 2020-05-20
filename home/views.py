@@ -16,6 +16,15 @@ from .forms import UploadForm
 from . import models
 
 
+def render_size(record):
+    num = record.size
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, 'B')
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Y', 'B')
+
+
 class UploadsTable(tables.Table):
     delete = tables.Column("Delete", accessor='id')
 
@@ -24,24 +33,19 @@ class UploadsTable(tables.Table):
         self.request = request
 
     def render_delete(self, record):
-        return mark_safe(f"<a onclick=\"delete_file('{record.id}', '{record.file.name}')\" href=\"javascript:void(0);\">&#x274C;</a>")
+        return mark_safe(f"<button class=\"mini red ui button\" onclick=\"delete_file('{record.id}', '{record.file.name}')\">delete</button>")
+        # return mark_safe(f"<a onclick=\"delete_file('{record.id}', '{record.file.name}')\" href=\"javascript:void(0);\">&#x274C;</a>")
 
     def render_is_private(self, record):
         checked = "checked=1" if record.is_private else ""
-        return mark_safe(f"""<input type="checkbox" {checked} onclick="set_private(this, '{record.id}');">""")
+        return mark_safe(f"""<div class="ui toggle checkbox"><input type="checkbox" name="public" {checked} onclick="set_private(this, '{record.id}');" id='check_{record.id}'><label for='check_{record.id}'></label></div>""")
+        # return mark_safe(f"""<input type="checkbox" {checked} onclick="set_private(this, '{record.id}');">""")
 
     def render_file(self, record):
-        file_link = f"<a href='{record.file.url}' target=\"_blank\">{basename(record.file.name)}</a>"
-        share_link = f"<img src=\"/static/img/link.svg\" class=\"copyicon\" onclick=\"copyToClipboard('{self.request.build_absolute_uri(record.file.url)}')\"\>"
+        file_link = f"<a href='{record.file.url}' target=\"_blank\" style='margin-right:50px;'>{basename(record.file.name)}</a>"
+        # share_link = f"<img src=\"/static/img/link.svg\" class=\"copyicon\" onclick=\"copyToClipboard('{self.request.build_absolute_uri(record.file.url)}')\"\>"
+        share_link = f"<button class=\"mini ui button copyicon\" onclick=\"copyToClipboard('{self.request.build_absolute_uri(record.file.url)}')\">copy link</button>"
         return mark_safe(file_link + share_link)
-
-    def render_size(self, record):
-        num = record.size
-        for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
-            if abs(num) < 1024.0:
-                return "%3.1f%s%s" % (num, unit, 'B')
-            num /= 1024.0
-        return "%.1f%s%s" % (num, 'Y', 'B')
 
     class Meta:
         orderable = False
@@ -51,6 +55,10 @@ class UploadsTable(tables.Table):
         # template_name = "django_tables2/bootstrap.html"
         exclude = ("id", "user", )
         sequence = ('created_at', 'file', 'size', 'downloads', 'is_private', 'delete')
+        # attrs = {"id": 'filetable'} ## DOES NOT WORK WITH OLDER DJANGO/django-tables
+        # row_attrs = {
+        #     "id": lambda record: record.pk
+        # }
 
 @login_required
 def home(request):

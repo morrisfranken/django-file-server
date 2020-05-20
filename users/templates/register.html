@@ -1,26 +1,25 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>3DU Drive</title>
-  <link rel="stylesheet" href="{% static "users/css/login.css" %}">
+    <meta charset="UTF-8">
+    <title>3DU Drive</title>
+    <link rel="stylesheet" href="{% static "users/css/login.css" %}">
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
 </head>
 
 <body>
-  <div class="wrapper">
-	<div class="container">
+<div class="wrapper">
+    <div class="container">
 		<h1>3DU Drive</h1>
-		<span id="message" style="color:red;font-weight:bold"></span>
-		<form action="javascript:login()" id="loginform" method="post" enctype="multipart/form-data">
+        <span id="message" style="color:red;font-weight:bold"></span>
+        <form action="javascript:register()" id="loginform" method="post" enctype="multipart/form-data">
 			{% csrf_token %}
 			{{ form.as_p }}<br>
-			<button type="submit" id="login-button">Login</button>
-		</form>
-		<a href="/users/register{{ invitation_code }}">register here</a>
-	</div>
+            <button type="submit" id="login-button">Register</button>
+        </form>
+    </div>
 </div>
 </body>
 
@@ -31,7 +30,7 @@
 		$('form').fadeIn(200);
 	}
 
-	function login() {
+	function register() {
 		var formData = new FormData($('form')[0]);
 
 		$.ajax({

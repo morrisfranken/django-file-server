@@ -12,5 +12,8 @@ class UploadForm(forms.ModelForm):
         model = Uploads
         fields = ('file', 'is_private')
         widgets = {
-            'file': forms.FileInput(attrs={'multiple' : True}),
+            'file': forms.FileInput(attrs={'multiple' : True, 'class' : 'hidden'})
+        }
+        labels = {
+            "is_private": "Private (requires login to download)",
         }
