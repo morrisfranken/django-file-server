@@ -15,14 +15,12 @@ from django.utils.html import mark_safe
 from .forms import UploadForm
 from . import models
 
-
-def render_size(record):
-    num = record.size
+def size2str(size):
     for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
-        if abs(num) < 1024.0:
-            return "%3.1f%s%s" % (num, unit, 'B')
-        num /= 1024.0
-    return "%.1f%s%s" % (num, 'Y', 'B')
+        if abs(size) < 1024.0:
+            return "%3.1f%s%s" % (size, unit, 'B')
+        size /= 1024.0
+    return "%.1f%s" % (size, 'B')
 
 
 class UploadsTable(tables.Table):
@@ -46,6 +44,9 @@ class UploadsTable(tables.Table):
         # share_link = f"<img src=\"/static/img/link.svg\" class=\"copyicon\" onclick=\"copyToClipboard('{self.request.build_absolute_uri(record.file.url)}')\"\>"
         share_link = f"<button class=\"mini ui button copyicon\" onclick=\"copyToClipboard('{self.request.build_absolute_uri(record.file.url)}')\">copy link</button>"
         return mark_safe(file_link + share_link)
+
+    def render_size(self, record):
+        return size2str(record.size)
 
     class Meta:
         orderable = False
