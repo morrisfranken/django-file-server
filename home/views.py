@@ -20,7 +20,7 @@ def size2str(size):
         if abs(size) < 1024.0:
             return "%3.1f%s%s" % (size, unit, 'B')
         size /= 1024.0
-    return "%.1f%s" % (size, 'B')
+    return "%.1f%s%s" % (size, 'Y', 'B')
 
 
 class UploadsTable(tables.Table):
@@ -70,9 +70,12 @@ def home(request):
 
         url_list = []
         for file in files:
-            print(file)
             form = UploadForm(request.POST, MultiValueDict({'file' : [file,]}))
             if form.is_valid():
+                print(f"{request.user.email} is uploading {file.name}")
+                if form.cleaned_data['overwrite']:
+                    name = models.user_directory_path(request, file.name)
+                    models.Uploads.objects.filter(file=name, user=request.user).delete()
                 candidate = form.save(commit=False)
                 candidate.user = request.user
                 candidate.size = candidate.file.size
@@ -118,16 +121,17 @@ def set_private(request, file_id):
 
 
 @login_required
-def download_private(request, localpath):
+def download_private(request, localpath, upload):
+    models.Uploads.objects.filter(id=upload.id).update(downloads=F('downloads') + 1)
     return sendfile(request, localpath)
 
 
 def download(request, download_path):
     localpath = join(settings.MEDIA_ROOT, download_path)
     upload = get_object_or_404(models.Uploads, file=download_path)
-    models.Uploads.objects.filter(id=upload.id).update(downloads=F('downloads') + 1)
-    print(f"download [{request.user.email if request.user.is_authenticated else 'anonymouse'} : {'private' if upload.is_private else 'public'}] {download_path}")
+    print(f"download attempt [{request.user.email if request.user.is_authenticated else 'anonymouse'} : {'private' if upload.is_private else 'public'}] {download_path}")
     if upload.is_private:
-        return download_private(request, localpath)
+        return download_private(request, localpath, upload)
     else:
+        models.Uploads.objects.filter(id=upload.id).update(downloads=F('downloads') + 1)
         return sendfile(request, localpath)

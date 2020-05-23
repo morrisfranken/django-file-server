@@ -50,6 +50,10 @@
         label[for*="id_file"], label[htmlfor*="id_file"], .hidden {
             display: none;
         }
+
+        #progress_bar {
+            display: none;
+        }
 </style>
 
 <body>
@@ -60,10 +64,9 @@
                 <h1>Drop Your Files Here</h1>
                 <form action="javascript:upload()" id="fileForm" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    {{ form.as_p }}<br>
+                    {{ form.as_p }}
                     <button type="submit" style="display:none">Upload</button>
                 </form>
-                <br>
                 <div class="ui progress" data-value="0" data-total="100" id="progress_bar">
                     <div class="bar">
                         <div class="progress"></div>
@@ -121,7 +124,7 @@
                 },
             });
         }
-        $("#progress_bar").hide();
+        //$("#progress_bar").hide();
 
         var dropzone = $('#dropzone')
         let fileInput = document.getElementById("{{ form.file.auto_id }}");

@@ -8,9 +8,11 @@ from .models import Uploads
 
 
 class UploadForm(forms.ModelForm):
+    overwrite = forms.BooleanField(required=False, initial=False)
+
     class Meta:
         model = Uploads
-        fields = ('file', 'is_private')
+        fields = ('file', 'is_private', 'overwrite')
         widgets = {
             'file': forms.FileInput(attrs={'multiple' : True, 'class' : 'hidden'})
         }
