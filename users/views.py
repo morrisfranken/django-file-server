@@ -35,7 +35,7 @@ def login(request):
     print("showing login page")
     form = forms.UserLoginForm()
     invitation_code = request.GET.get('invitation_code')
-    return render(request, 'login.html', {'form': form, 'invitation_code' : f"?invitation_code={invitation_code}" if invitation_code else ""})
+    return render(request, 'login.html', {'form': form, 'invitation_code' : f"?invitation_code={invitation_code}" if invitation_code else "", 'NAME' : secrets.NAME})
 
 
 @login_required
@@ -67,5 +67,5 @@ def register(request):
                 return HttpResponse('Email already in use', status=401)
     else:
         form = forms.UserRegisterForm(initial={'invitation_code' : request.GET.get('invitation_code')})
-        return render(request, 'register.html', {'form': form})
+        return render(request, 'register.html', {'form': form, 'NAME' : secrets.NAME})
 

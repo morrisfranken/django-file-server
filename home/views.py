@@ -14,6 +14,7 @@ from django.utils.html import mark_safe
 
 from .forms import UploadForm
 from . import models
+from file_server import secrets
 
 def size2str(size):
     for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
@@ -88,12 +89,12 @@ def home(request):
     else:
         form = UploadForm()
         upload_table = UploadsTable(request, models.Uploads.objects.filter(user=request.user).order_by('-created_at'))
-        return render(request, 'home.html', {'form': form, 'table' : upload_table})
+        return render(request, 'home.html', {'form': form, 'table' : upload_table, 'NAME' : secrets.NAME})
 
 @login_required
 def uploads(request):
     upload_table = UploadsTable(request, models.Uploads.objects.filter(user=request.user).order_by('-created_at'))
-    return render(request, 'uploads.html', {'table' : upload_table})
+    return render(request, 'uploads.html', {'table' : upload_table, 'NAME' : secrets.NAME})
 
 
 @login_required

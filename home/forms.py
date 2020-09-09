@@ -12,9 +12,9 @@ class UploadForm(forms.ModelForm):
 
     class Meta:
         model = Uploads
-        fields = ('file', 'is_private', 'overwrite')
+        fields = ('is_private', 'overwrite', 'file')
         widgets = {
-            'file': forms.FileInput(attrs={'multiple' : True, 'class' : 'hidden'})
+            'file': forms.FileInput(attrs={'multiple' : True})
         }
         labels = {
             "is_private": "Private (requires login to download)",

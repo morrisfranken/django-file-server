@@ -1,0 +1,6 @@
+django~=3.0.5
+termcolor~=1.1.0
+ujson~=1.35
+django-sendfile
+django-tables2
+#future-fstrings // for python < 3.6
